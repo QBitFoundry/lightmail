@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    body {
+        font-family: 'Courier New', Courier, monospace;
+    }
+    #test, #clear {
+        color: hsl(0, 0%, 96%);
+        background-color: hsl(120, 80%, 40%);
+        text-decoration: none;
+        padding: 8px 16px;
+        border: 1px solid hsl(120, 80%, 40%);
+        border-radius: 8px;
+        font-weight: bold;
+    }
+    #clear {
+        background-color: hsl(0, 80%, 40%);
+        border: 1px solid hsl(0, 80%, 40%);
+    }
+
+    #test:hover, #clear:hover, #test:active, #clear:active {
+        background-color: hsl(0, 0%, 96%);
+    }
+    #test:hover, #test:active {
+        color: hsl(120, 80%, 40%);
+    }
+    #clear:hover, #clear:active {
+        color: hsl(0, 80%, 40%);
+    }
+
+    .mail_box {
+        border-radius: 8px;
+        padding: 8px;
+        background-color: hsl(0, 0%, 96%);
+        margin-inline: 16px;
+        margin-top: 40px;
+    }
+    .mail_box_border {
+        border: 2px dashed hsl(0, 0%, 40%);
+        border-radius: 8px;
+        padding: 8px;
+    }
+    .mail_scroll_box {
+        padding: 8px;
+        min-height: 56dvh;
+        max-height: 56dvh;
+        overflow-y: auto;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    #mail_box_message {
+        margin: auto 0px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .mail {
+        border: 1px solid hsl(0, 0%, 20%);
+        border-radius: 8px;
+        padding: 8px;
+        background-color: hsl(0, 0%, 100%);
+    }
+    .mail>* {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-inline: 8dvw;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 8dvh;
+    }
+    .controls-btn {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .big {
+        font-size: 1.3rem;
+    }
+
+</style>
+<body>
+    <h1>Local Emails</h1>
+
+    <div class="controls">
+        <aside>
+            <p class="big" style="display: inline;"><b>Runtime: </b>{{start_time}}</p>
+        </aside>
+        <aside class="controls-btn">
+            <a href="/send_mail" id="test">Send Test Mail</a>
+            <span>-</span>
+            <a href="/clear_mail" id="clear">Clear Mail</a>
+        </aside>
+    </div>
+
+    <div class="mail_box">
+        <div class="mail_box_border">
+            <div class="mail_scroll_box">
+                {% if emails|length == 0 %}
+                <div id="mail_box_message">
+                        <center><h3>Empty!..No Mails</h3></center>
+                    </div>
+                {% endif %}
+            
+                {% for email in emails %}
+                    <div class="mail">
+                        <p><b>From: </b> {{email.from}}</p>
+                        <p><b>To: </b> {{email.to}}</p>
+                        <hr>
+                        <br>
+                        <pre><b>Body: </b> {{email.body}}</pre>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</body>
+<script>
+
+    function request(method, path) {
+        const xhr = new XMLHttpRequest();
+        xhr.open(method, path, true); // true for asynchronous
+
+        xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+            alert(xhr.responseText);
+            location.reload()
+        } else {
+            console.error('Request failed with status:', xhr.status);
+        }
+        };
+
+        xhr.onerror = function() {
+        console.error('Request failed due to a network error');
+        };
+
+        xhr.send();
+    }
+
+    const test_link = document.getElementById("test");
+    test_link.addEventListener("click", (event) => {
+        event.preventDefault();
+        request("GET", "http://127.0.0.1/send_mail")
+    });
+
+    const clear_link = document.getElementById("clear");
+    clear_link.addEventListener("click", (event) => {
+        event.preventDefault();
+        request("GET", "http://127.0.0.1/clear_mail")
+    });
+</script>
+</html>
