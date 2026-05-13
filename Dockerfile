@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 RUN pip install --no-cache-dir uwsgi
 
-RUN apt-get purge --auto-remove gcc libc-dev
+RUN apt-get purge -y --auto-remove gcc libc-dev
 
 COPY . .
 
