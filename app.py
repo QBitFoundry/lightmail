@@ -73,7 +73,9 @@ def start_smtpd():
 
 def smtpd_process_lock():
     if os.name != "nt":
-        lock_file = open("/tmp/smtp.lock", "w")
+        path = "/tmp/light-mail"
+        os.makedirs(path, exist_ok=True)
+        lock_file = open("/tmp/light-mail/smtp.lock", "w")
         try:
             fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
             start_smtpd()
