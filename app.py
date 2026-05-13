@@ -6,6 +6,8 @@ from flask_mail import Mail, Message
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+if os.name != "nt":
+    import fcntl
 
 load_dotenv()
 
@@ -65,7 +67,22 @@ def run_smtpd():
     controller.start()
     print("SMTP server started on", host+":"+str(port))
 
-if __name__ == "__main__":
+def start_smtpd():
     smtp_thread = threading.Thread(target=run_smtpd, daemon=True)
     smtp_thread.start()
+
+def smtpd_process_lock():
+    if os.name != "nt":
+        lock_file = open("/tmp/smtp.lock", "w")
+        try:
+            fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            start_smtpd()
+        except BlockingIOError:
+            pass
+    else:
+        start_smtpd()
+
+smtpd_process_lock()
+
+if __name__ == "__main__":
     app.run(host=os.getenv("HOST_IP"), port=int(os.getenv("HOST_PORT")))

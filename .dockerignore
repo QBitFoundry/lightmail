@@ -1,0 +1,23 @@
+# Git
+.git
+.gitignore
+
+# Docs
+README.md
+LICENSE
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local env files (important)
+.env
+app/.env
+
+# Tests (optional)
+tests/
+
+# Node/Python cache etc
+node_modules/
