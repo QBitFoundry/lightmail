@@ -159,13 +159,13 @@
     const test_link = document.getElementById("test");
     test_link.addEventListener("click", (event) => {
         event.preventDefault();
-        request("GET", "http://127.0.0.1/send_mail")
+        request("GET", "http://127.0.0.1:8000/send_mail")
     });
 
     const clear_link = document.getElementById("clear");
     clear_link.addEventListener("click", (event) => {
         event.preventDefault();
-        request("GET", "http://127.0.0.1/clear_mail")
+        request("GET", "http://127.0.0.1:8000/clear_mail")
     });
 </script>
 </html>
