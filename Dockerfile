@@ -24,5 +24,5 @@ ENV PORT=8000
 ENV PROCESSES=2
 ENV THREADS=2
 
-CMD ["python", "app.py"]
-# CMD ["uwsgi", "--ini", "uwsgi.ini"]
+# CMD ["python", "app.py"]
+CMD ["uwsgi", "--ini", "uwsgi.ini"]

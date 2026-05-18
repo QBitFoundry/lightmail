@@ -6,8 +6,8 @@ from flask_mail import Mail, Message
 from datetime import datetime
 import os
 from dotenv import load_dotenv
-# if os.name != "nt":
-#     import fcntl
+if os.name != "nt":
+    import fcntl
 import time
 
 load_dotenv()
@@ -86,10 +86,10 @@ def smtpd_process_lock():
     if os.name != "nt":
         path = "/tmp/light-mail"
         os.makedirs(path, exist_ok=True)
-        # NOTE: Use db.sqlite3 as file to lock and for persistent storage.
-        # lock_file = open("/tmp/light-mail/smtp.lock", "w")
+        # NOTE: Use db.sqlite3 as file to lock and for persistent storage.❌
+        lock_file = open("/tmp/light-mail/smtp.lock", "w")
         try:
-            # fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
             start_smtpd()
         except BlockingIOError:
             pass
