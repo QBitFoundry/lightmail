@@ -104,10 +104,9 @@ def smtpd_process_lock():
         start_smtpd()
 
 if HAS_UWSGI:
-    @uwsgi.postfork
-    def init_smtpd_process():
-        smtpd_process_lock()
-smtpd_process_lock()
+    uwsgi.post_fork_hook = smtpd_process_lock
+else:
+    smtpd_process_lock()
 
 if __name__ == "__main__":
     app.run(host=os.getenv("HOST_IP"), port=int(os.getenv("HOST_PORT")), debug=False)
