@@ -6,8 +6,15 @@ from flask_mail import Mail, Message
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+
 if os.name != "nt":
     import fcntl
+try:
+    import uwsgi
+    HAS_UWSGI = True
+except ImportError:
+    HAS_UWSGI = False
+
 import time
 
 load_dotenv()
@@ -96,6 +103,10 @@ def smtpd_process_lock():
     else:
         start_smtpd()
 
+if HAS_UWSGI:
+    @uwsgi.postfork
+    def init_smtpd_process():
+        smtpd_process_lock()
 smtpd_process_lock()
 
 if __name__ == "__main__":
