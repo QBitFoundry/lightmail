@@ -6,12 +6,14 @@ from flask_mail import Mail, Message
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import json
 
 if os.name != "nt":
     import fcntl
 try:
     import uwsgi
     HAS_UWSGI = True
+    uwsgi.lock()
 except ImportError:
     HAS_UWSGI = False
 
@@ -21,7 +23,25 @@ load_dotenv()
 
 app = Flask(__name__)
 
-received_mail: list[:object] = []
+
+class UwsgiSharedData:
+    def get() -> list[dict]:
+        data: list[dict] = []
+        if HAS_UWSGI:
+            data = uwsgi.cache_get("received_mail", "light_mail")
+            data = json.loads(data)
+        return data
+
+    def set(data) -> None:
+        if uwsgi:
+            if len(data) > 100:
+                data = data.pop(0)
+            uwsgi.cache_set("received_mail", json.dumps(data), 0, "light_mail")
+
+
+uwsgi_shared_data = UwsgiSharedData()
+received_mail: list[dict] = uwsgi_shared_data.get()
+
 
 class MailHandler:
     async def handle_DATA(self, server, session, envelope):
@@ -32,8 +52,9 @@ class MailHandler:
         }
 
         received_mail.append(data)
+        uwsgi_shared_data.set(received_mail)
 
-        return "250 ok"
+        return "200 ok"
     
 
 @app.route('/')
@@ -105,6 +126,7 @@ def smtpd_process_lock():
 
 if HAS_UWSGI:
     uwsgi.post_fork_hook = smtpd_process_lock
+    uwsgi.unlock()
 else:
     smtpd_process_lock()
 
