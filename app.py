@@ -100,7 +100,9 @@ def send_mail():
 
 @app.route('/clear_mail')
 def clear_mail():
+    received_mail = uwsgi_shared_data.get()
     received_mail.clear()
+    uwsgi_shared_data.set(received_mail)
     return "Mail cleared!"
 
 def run_smtpd():
