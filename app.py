@@ -13,7 +13,7 @@ if os.name != "nt":
 try:
     import uwsgi
     HAS_UWSGI = True
-    uwsgi.lock()
+    # uwsgi.lock()
 except ImportError:
     HAS_UWSGI = False
 
@@ -28,16 +28,24 @@ class UwsgiSharedData:
     def get(self) -> list[dict]:
         data: list[dict] = []
         if HAS_UWSGI:
-            uwsgi_cache_data = uwsgi.cache_get("received_mail", "light_mail")
-            if uwsgi_cache_data is not None:
-                data = json.loads(uwsgi_cache_data)
+            uwsgi.lock()
+            try:
+                uwsgi_cache_data = uwsgi.cache_get("received_mail", "light_mail")
+                if uwsgi_cache_data is not None:
+                    data = json.loads(uwsgi_cache_data)
+            finally:
+                uwsgi.unlock()
         return data
 
     def set(self, data) -> None:
-        if uwsgi:
-            if len(data) > 100:
-                data = data.pop(0)
-            uwsgi.cache_set("received_mail", json.dumps(data), 0, "light_mail")
+        if HAS_UWSGI:
+            try:
+                uwsgi.lock()
+                if len(data) > 100:
+                    data = data.pop(0)
+                uwsgi.cache_update("received_mail", json.dumps(data), 0, "light_mail")
+            finally:
+                uwsgi.unlock()
 
 
 uwsgi_shared_data = UwsgiSharedData()
@@ -55,7 +63,7 @@ class MailHandler:
         received_mail.append(data)
         uwsgi_shared_data.set(received_mail)
 
-        return "200 ok"
+        return "250 ok"
     
 
 @app.route('/')
@@ -127,7 +135,7 @@ def smtpd_process_lock():
 
 if HAS_UWSGI:
     uwsgi.post_fork_hook = smtpd_process_lock
-    uwsgi.unlock()
+    # uwsgi.unlock()
 else:
     smtpd_process_lock()
 
