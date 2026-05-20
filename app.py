@@ -25,14 +25,14 @@ app = Flask(__name__)
 
 
 class UwsgiSharedData:
-    def get() -> list[dict]:
+    def get(self) -> list[dict]:
         data: list[dict] = []
         if HAS_UWSGI:
             data = uwsgi.cache_get("received_mail", "light_mail")
             data = json.loads(data)
         return data
 
-    def set(data) -> None:
+    def set(self, data) -> None:
         if uwsgi:
             if len(data) > 100:
                 data = data.pop(0)
