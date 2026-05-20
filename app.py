@@ -28,9 +28,9 @@ class UwsgiSharedData:
     def get(self) -> list[dict]:
         data: list[dict] = []
         if HAS_UWSGI:
-            data = uwsgi.cache_get("received_mail", "light_mail")
-            if data is not None:
-                data = json.loads(data)
+            uwsgi_cache_data = uwsgi.cache_get("received_mail", "light_mail")
+            if uwsgi_cache_data is not None:
+                data = json.loads(uwsgi_cache_data)
         return data
 
     def set(self, data) -> None:
