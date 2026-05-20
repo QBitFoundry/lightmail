@@ -42,14 +42,14 @@ class UwsgiSharedData:
             try:
                 uwsgi.lock()
                 if len(data) > 100:
-                    data = data.pop(0)
+                    data = data[-100:]
                 uwsgi.cache_update("received_mail", json.dumps(data), 0, "light_mail")
             finally:
                 uwsgi.unlock()
 
 
 uwsgi_shared_data = UwsgiSharedData()
-received_mail: list[dict] = uwsgi_shared_data.get()
+received_mail: list[dict] = []
 
 
 class MailHandler:
@@ -60,6 +60,7 @@ class MailHandler:
             "body": envelope.content.decode("utf-8")
         }
 
+        received_mail = uwsgi_shared_data.get()
         received_mail.append(data)
         uwsgi_shared_data.set(received_mail)
 
@@ -70,6 +71,7 @@ class MailHandler:
 def index():
     
     start_time = datetime.now()
+    received_mail = uwsgi_shared_data.get()
     return render_template("index.html", emails=received_mail, start_time=start_time)
 
 
