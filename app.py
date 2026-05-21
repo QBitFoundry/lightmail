@@ -50,17 +50,20 @@ class UwsgiSharedData:
 
 
 uwsgi_shared_data = UwsgiSharedData()
+received_mail: list[dict] = []
 
 
 class MailHandler:
     async def handle_DATA(self, server, session, envelope):
+        global received_mail
+
         data = {
             "from": envelope.mail_from,
             "to": envelope.rcpt_tos,
             "body": envelope.content.decode("utf-8")
         }
 
-        received_mail = uwsgi_shared_data.received_mail
+        received_mail = uwsgi_shared_data.received_mail if HAS_UWSGI else received_mail
         received_mail.append(data)
         uwsgi_shared_data.received_mail = received_mail
 
@@ -69,9 +72,10 @@ class MailHandler:
 
 @app.route('/')
 def index():
-    
+    global received_mail
+
     start_time = datetime.now()
-    received_mail = uwsgi_shared_data.received_mail
+    received_mail = uwsgi_shared_data.received_mail if HAS_UWSGI else received_mail
     return render_template("index.html", emails=received_mail, start_time=start_time)
 
 
@@ -100,7 +104,9 @@ def send_mail():
 
 @app.route('/clear_mail')
 def clear_mail():
-    received_mail = uwsgi_shared_data.received_mail
+    global received_mail
+
+    received_mail = uwsgi_shared_data.received_mail if HAS_UWSGI else received_mail
     received_mail.clear()
     uwsgi_shared_data.received_mail = received_mail
     return "Mail cleared!"

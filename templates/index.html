@@ -120,7 +120,8 @@
                     </div>
                 {% endif %}
             
-                {% for email in emails %}
+                {% for _ in emails %}
+                    {% set email = emails[loop.revindex0] %}
                     <div class="mail">
                         <p><b>From: </b> {{email.from}}</p>
                         <p><b>To: </b> {{email.to}}</p>
