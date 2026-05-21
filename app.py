@@ -24,7 +24,8 @@ app = Flask(__name__)
 
 
 class UwsgiSharedData:
-    def get(self) -> list[dict]:
+    @property
+    def received_mail(self) -> list[dict]:
         data: list[dict] = []
         if HAS_UWSGI:
             uwsgi.lock()
@@ -36,7 +37,8 @@ class UwsgiSharedData:
                 uwsgi.unlock()
         return data
 
-    def set(self, data) -> None:
+    @received_mail.setter
+    def received_mail(self, data: list[dict]) -> None:
         if HAS_UWSGI:
             try:
                 uwsgi.lock()
@@ -48,7 +50,6 @@ class UwsgiSharedData:
 
 
 uwsgi_shared_data = UwsgiSharedData()
-received_mail: list[dict] = []
 
 
 class MailHandler:
@@ -59,9 +60,9 @@ class MailHandler:
             "body": envelope.content.decode("utf-8")
         }
 
-        received_mail = uwsgi_shared_data.get()
+        received_mail = uwsgi_shared_data.received_mail
         received_mail.append(data)
-        uwsgi_shared_data.set(received_mail)
+        uwsgi_shared_data.received_mail = received_mail
 
         return "250 ok"
     
@@ -70,7 +71,7 @@ class MailHandler:
 def index():
     
     start_time = datetime.now()
-    received_mail = uwsgi_shared_data.get()
+    received_mail = uwsgi_shared_data.received_mail
     return render_template("index.html", emails=received_mail, start_time=start_time)
 
 
@@ -99,9 +100,9 @@ def send_mail():
 
 @app.route('/clear_mail')
 def clear_mail():
-    received_mail = uwsgi_shared_data.get()
+    received_mail = uwsgi_shared_data.received_mail
     received_mail.clear()
-    uwsgi_shared_data.set(received_mail)
+    uwsgi_shared_data.received_mail = received_mail
     return "Mail cleared!"
 
 def run_smtpd():
